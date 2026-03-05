@@ -67,9 +67,15 @@ def convert_style_txt(path: Path) -> tuple[Path, Path]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Convert legacy .txt corpus files to .md + .md.metadata.json")
+    parser = argparse.ArgumentParser(
+        description="Convert legacy .txt corpus files to .md + .md.metadata.json"
+    )
     parser.add_argument("--data-root", default="data", help="Path to corpus data root.")
-    parser.add_argument("--delete-txt", action="store_true", help="Delete .txt after successful conversion.")
+    parser.add_argument(
+        "--delete-txt",
+        action="store_true",
+        help="Delete .txt after successful conversion.",
+    )
     args = parser.parse_args()
 
     data_root = Path(args.data_root)

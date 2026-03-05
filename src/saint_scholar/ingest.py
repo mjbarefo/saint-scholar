@@ -78,7 +78,9 @@ def _chunk_style_text(text: str, target_words: int, overlap_words: int) -> list[
             long_parts = _chunk_by_sentence(paragraph, target_words)
             for part in long_parts:
                 part_words = part.split()
-                if current_words and (len(current_words) + len(part_words) > target_words):
+                if current_words and (
+                    len(current_words) + len(part_words) > target_words
+                ):
                     flush_chunk()
                     current_words = current_words[-overlap_words:] + part_words
                 else:
@@ -199,7 +201,9 @@ def _load_knowledge_from_md(filepath: Path) -> tuple[str, dict[str, Any], str] |
     return content, _normalize_metadata_values(metadata), filepath.stem
 
 
-def _load_knowledge_chunks(data_root: Path) -> tuple[list[str], list[dict[str, Any]], list[str]]:
+def _load_knowledge_chunks(
+    data_root: Path,
+) -> tuple[list[str], list[dict[str, Any]], list[str]]:
     texts: list[str] = []
     metadatas: list[dict[str, Any]] = []
     ids: list[str] = []
@@ -267,7 +271,9 @@ def _load_style_from_md(filepath: Path) -> tuple[str, dict[str, Any], str] | Non
     return raw, _normalize_metadata_values(metadata), filepath.stem
 
 
-def _load_style_chunks(data_root: Path) -> tuple[list[str], list[dict[str, Any]], list[str]]:
+def _load_style_chunks(
+    data_root: Path,
+) -> tuple[list[str], list[dict[str, Any]], list[str]]:
     texts: list[str] = []
     metadatas: list[dict[str, Any]] = []
     ids: list[str] = []
@@ -294,7 +300,9 @@ def _load_style_chunks(data_root: Path) -> tuple[list[str], list[dict[str, Any]]
             metadata = dict(base_metadata)
             metadata["style_richness"] = style_richness(chunk)
             metadatas.append(metadata)
-            ids.append(f"s_{metadata.get('figure', filepath.parent.name)}_{base_id}_{idx}")
+            ids.append(
+                f"s_{metadata.get('figure', filepath.parent.name)}_{base_id}_{idx}"
+            )
 
     return texts, metadatas, ids
 
@@ -361,7 +369,9 @@ def _load_manifest() -> dict[str, Any] | None:
 
 
 def _save_manifest(manifest: dict[str, Any]) -> None:
-    _manifest_path().write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
+    _manifest_path().write_text(
+        json.dumps(manifest, ensure_ascii=False), encoding="utf-8"
+    )
 
 
 def _save_index(
@@ -405,7 +415,9 @@ def _normalize_embeddings(vectors: np.ndarray) -> np.ndarray:
     return vectors / norms
 
 
-def _compute_stats(knowledge_index: dict[str, Any], style_index: dict[str, Any]) -> dict[str, Any]:
+def _compute_stats(
+    knowledge_index: dict[str, Any], style_index: dict[str, Any]
+) -> dict[str, Any]:
     knowledge_metas = knowledge_index.get("metadatas", [])
     style_metas = style_index.get("metadatas", [])
 
@@ -442,14 +454,20 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
             "stats": _compute_stats(knowledge_index, style_index),
         }
 
-    if knowledge_index is not None and style_index is not None and stored_manifest != current_manifest:
+    if (
+        knowledge_index is not None
+        and style_index is not None
+        and stored_manifest != current_manifest
+    ):
         print("Corpus changes detected; rebuilding vector store indices.")
 
     knowledge_texts, knowledge_metas, knowledge_ids = _load_knowledge_chunks(data_root)
     style_texts, style_metas, style_ids = _load_style_chunks(data_root)
 
     if not knowledge_texts:
-        auto_populate = os.getenv("SAINT_SCHOLAR_AUTO_POPULATE_KNOWLEDGE", "1").strip() != "0"
+        auto_populate = (
+            os.getenv("SAINT_SCHOLAR_AUTO_POPULATE_KNOWLEDGE", "1").strip() != "0"
+        )
         if auto_populate:
             print("Knowledge corpus is empty. Attempting automatic PubMed bootstrap...")
             try:
@@ -465,7 +483,9 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
             except Exception as exc:
                 print(f"Automatic knowledge bootstrap failed: {exc}")
 
-            knowledge_texts, knowledge_metas, knowledge_ids = _load_knowledge_chunks(data_root)
+            knowledge_texts, knowledge_metas, knowledge_ids = _load_knowledge_chunks(
+                data_root
+            )
             current_manifest = _corpus_manifest(data_root)
 
     if not knowledge_texts or not style_texts:
@@ -480,7 +500,13 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
     knowledge_embeddings = _normalize_embeddings(knowledge_embeddings)
     style_embeddings = _normalize_embeddings(style_embeddings)
 
-    _save_index("knowledge", knowledge_ids, knowledge_texts, knowledge_metas, knowledge_embeddings)
+    _save_index(
+        "knowledge",
+        knowledge_ids,
+        knowledge_texts,
+        knowledge_metas,
+        knowledge_embeddings,
+    )
     _save_index("style", style_ids, style_texts, style_metas, style_embeddings)
     _save_manifest(current_manifest)
 
@@ -496,7 +522,9 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
     )
     domain_bits = [f"{k}: {v}" for k, v in sorted(stats["knowledge_by_domain"].items())]
     print(f"  {' | '.join(domain_bits)}")
-    print(f"Style: {stats['style_total']} chunks across {len(stats['style_by_figure'])} figures")
+    print(
+        f"Style: {stats['style_total']} chunks across {len(stats['style_by_figure'])} figures"
+    )
     figure_bits = [f"{k}: {v}" for k, v in sorted(stats["style_by_figure"].items())]
     print(f"  {' | '.join(figure_bits)}")
     print(f"Stored in {VECTOR_STORE_DIR}")

@@ -9,7 +9,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import textwrap
 import time
 from pathlib import Path
 from typing import Any
@@ -31,7 +30,7 @@ FIGURES: dict[str, dict[str, Any]] = {
         "name": "Marcus Aurelius",
         "tradition": "Stoicism",
         "works": [
-            {"id": 2680,  "work_title": "Meditations (Long)"},
+            {"id": 2680, "work_title": "Meditations (Long)"},
             {"id": 15877, "work_title": "Thoughts of Marcus Aurelius"},
         ],
     },
@@ -39,17 +38,17 @@ FIGURES: dict[str, dict[str, Any]] = {
         "name": "Buddha",
         "tradition": "Buddhism",
         "works": [
-            {"id": 2017,  "work_title": "Dhammapada (Muller)"},
+            {"id": 2017, "work_title": "Dhammapada (Muller)"},
             {"id": 35185, "work_title": "Dhammapada (Woodward)"},
             {"id": 35895, "work_title": "Gospel of Buddha (Carus)"},
-            {"id": 8920,  "work_title": "Light of Asia (Arnold)"},
+            {"id": 8920, "work_title": "Light of Asia (Arnold)"},
         ],
     },
     "laotzu": {
         "name": "Lao Tzu",
         "tradition": "Taoism",
         "works": [
-            {"id": 216,   "work_title": "Tao Te Ching (Legge)"},
+            {"id": 216, "work_title": "Tao Te Ching (Legge)"},
             {"id": 59709, "work_title": "Chuang Tzu (Giles)"},
         ],
     },
@@ -66,10 +65,10 @@ FIGURES: dict[str, dict[str, Any]] = {
         "name": "Solomon",
         "tradition": "Wisdom Literature",
         "works": [
-            {"id": 8021,  "work_title": "Ecclesiastes (KJV)"},
-            {"id": 8020,  "work_title": "Proverbs (KJV)"},
-            {"id": 8022,  "work_title": "Song of Solomon (KJV)"},
-            {"id": 8325,  "work_title": "Wisdom of Solomon (Douay-Rheims)"},
+            {"id": 8021, "work_title": "Ecclesiastes (KJV)"},
+            {"id": 8020, "work_title": "Proverbs (KJV)"},
+            {"id": 8022, "work_title": "Song of Solomon (KJV)"},
+            {"id": 8325, "work_title": "Wisdom of Solomon (Douay-Rheims)"},
         ],
     },
     # ── New figures ──────────────────────────────────────────────────────────
@@ -79,7 +78,7 @@ FIGURES: dict[str, dict[str, Any]] = {
         "works": [
             {"id": 45109, "work_title": "Enchiridion"},
             {"id": 10661, "work_title": "Discourses of Epictetus"},
-            {"id": 871,   "work_title": "Golden Sayings of Epictetus"},
+            {"id": 871, "work_title": "Golden Sayings of Epictetus"},
         ],
     },
     "seneca": {
@@ -87,14 +86,14 @@ FIGURES: dict[str, dict[str, Any]] = {
         "tradition": "Stoicism",
         "works": [
             {"id": 56075, "work_title": "Morals – Happy Life, Benefits, Anger"},
-            {"id": 3794,  "work_title": "On Benefits (Seneca)"},
+            {"id": 3794, "work_title": "On Benefits (Seneca)"},
         ],
     },
     "confucius": {
         "name": "Confucius",
         "tradition": "Confucianism",
         "works": [
-            {"id": 3330,  "work_title": "Analects (Legge)"},
+            {"id": 3330, "work_title": "Analects (Legge)"},
             {"id": 10056, "work_title": "Chinese Literature Anthology"},
         ],
     },
@@ -137,7 +136,7 @@ def _clean_gutenberg(text: str) -> str:
         idx = text.find(marker)
         if idx != -1:
             nl = text.find("\n", idx)
-            text = text[nl + 1:] if nl != -1 else text[idx + len(marker):]
+            text = text[nl + 1 :] if nl != -1 else text[idx + len(marker) :]
             break
     for marker in end_markers:
         idx = text.find(marker)
@@ -199,6 +198,7 @@ def _chunk_text(text: str, max_words: int = CHUNK_WORDS) -> list[str]:
 
 # ── Main fetch logic ─────────────────────────────────────────────────────────
 
+
 def fetch_figure(figure_key: str) -> None:
     """Fetch all works for one figure, chunk them, and write .md + metadata."""
     cfg = FIGURES[figure_key]
@@ -253,6 +253,7 @@ def fetch_figure(figure_key: str) -> None:
 
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(

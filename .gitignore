@@ -2,6 +2,7 @@
 .env
 .venv/
 .venv_*/
+droplet_summary.md
 
 # Local generated data stores
 vector_store/
