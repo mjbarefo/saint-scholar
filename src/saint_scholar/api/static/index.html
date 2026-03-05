@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Saint & Scholar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css?v=20260304-2318" />
+  </head>
+  <body>
+    <!-- Grain texture overlay -->
+    <div class="grain-overlay" aria-hidden="true"></div>
+
+    <div class="app">
+      <!-- Header with branding and status -->
+      <header class="app-header">
+        <div class="brand-section">
+          <div class="brand-mark">
+            <svg class="brand-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="1"/>
+              <path d="M14 4 L14 24 M7 8 Q14 14 7 20 M21 8 Q14 14 21 20" stroke="currentColor" stroke-width="1" fill="none" opacity="0.6"/>
+              <circle cx="14" cy="14" r="2.5" fill="currentColor" opacity="0.3"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1 class="brand-title">Saint <span class="brand-amp">&</span> Scholar</h1>
+            <p class="brand-tagline">Ancient wisdom &middot; Modern science</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="status-section">
+            <span id="health-badge" class="health-badge status-warn"></span>
+            <span id="request-id" class="request-id"></span>
+          </div>
+          <div class="header-divider"></div>
+          <button id="theme-toggle" class="theme-toggle" title="Toggle dark mode" aria-label="Toggle theme">
+            <span class="theme-icon"></span>
+          </button>
+          <button id="new-chat-btn" class="new-chat-button" title="Start new conversation">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            <span>New Discourse</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Character selection bar -->
+      <div class="character-bar">
+        <div class="character-bar-inner">
+          <span class="character-bar-label">Select a Voice</span>
+          <div id="figure-list" class="figure-grid"></div>
+        </div>
+      </div>
+
+      <!-- Main chat container -->
+      <main class="chat-container">
+        <div class="chat-wrapper">
+          <!-- Welcome state / Sample prompts -->
+          <div id="welcome-state" class="welcome-state">
+            <div class="welcome-content">
+              <div class="welcome-ornament" aria-hidden="true">
+                <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <line x1="0" y1="20" x2="45" y2="20" stroke="currentColor" stroke-width="0.5"/>
+                  <circle cx="60" cy="20" r="4" stroke="currentColor" stroke-width="0.5" fill="none"/>
+                  <circle cx="60" cy="20" r="1.5" fill="currentColor" opacity="0.4"/>
+                  <line x1="75" y1="20" x2="120" y2="20" stroke="currentColor" stroke-width="0.5"/>
+                </svg>
+              </div>
+              <h2 class="welcome-title">Begin Your Inquiry</h2>
+              <p class="welcome-subtitle">Pose questions of neuroscience, epistemology, and the human condition&mdash;answered through the voices of distinguished historical and philosophical traditions.</p>
+
+              <div class="sample-prompts">
+                <p class="sample-prompts-label">Suggested Questions</p>
+                <div id="prompt-list" class="prompt-chips"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat messages -->
+          <div id="chat-messages" class="chat-messages"></div>
+        </div>
+
+        <!-- Input area -->
+        <div class="input-area">
+          <form id="ask-form" class="input-form">
+            <div class="input-wrapper">
+              <textarea
+                id="question-input"
+                name="question"
+                maxlength="1200"
+                rows="1"
+                placeholder="Formulate your inquiry..."
+                aria-label="Question input"
+              ></textarea>
+              <div class="input-actions">
+                <span id="char-count" class="char-counter">0 / 1200</span>
+                <button type="submit" id="ask-btn" class="send-button" aria-label="Send message">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="input-hint">Press Enter to submit &middot; Shift + Enter for a new line</div>
+          </form>
+          <div id="error-banner" class="error-banner hidden"></div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Hidden metadata footer -->
+    <footer id="meta-strip" class="meta-strip hidden"></footer>
+
+    <script src="/static/app.js?v=20260304-2318"></script>
+  </body>
+</html>

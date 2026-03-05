@@ -1,0 +1,53 @@
+# Environment and secrets
+.env
+.venv/
+.venv_*/
+
+# Local generated data stores
+vector_store/
+chroma_store/
+data/knowledge/
+data/style/
+.bak/
+
+# Python build/runtime artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Tooling caches and logs
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+
+# Local Codex/Claude metadata
+.claude/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
