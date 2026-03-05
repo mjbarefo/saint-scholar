@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 
@@ -9,6 +10,8 @@ from dotenv import load_dotenv
 from saint_scholar.config import ANTHROPIC_MODEL, FIGURES, MAX_TOKENS
 
 load_dotenv()
+
+logger = logging.getLogger("saint_scholar.generation")
 
 
 def _clip(text: str, limit: int = 1800) -> str:
@@ -41,7 +44,7 @@ def _build_prompt(
         "marvelous, honoring both empirical understanding and contemplative reflection."
     )
 
-    knowledge_lines: list[str] = ["KNOWLEDGE PASSAGES:"]
+    knowledge_lines: list[str] = []
     for idx, chunk in enumerate(knowledge_chunks, start=1):
         m = chunk.get("metadata", {})
         knowledge_lines.append(f"[K{idx}]: {_clip(chunk.get('text', ''))}")
@@ -52,7 +55,7 @@ def _build_prompt(
         )
         knowledge_lines.append("")
 
-    style_lines: list[str] = [f"STYLE PASSAGES (voice of {figure_name}):"]
+    style_lines: list[str] = []
     for idx, chunk in enumerate(style_chunks, start=1):
         m = chunk.get("metadata", {})
         style_lines.append(f"[S{idx}]: {_clip(chunk.get('text', ''), 1200)}")
@@ -60,13 +63,15 @@ def _build_prompt(
         style_lines.append("")
 
     user_prompt = (
+        "<knowledge_passages>\n"
         f"{chr(10).join(knowledge_lines)}\n"
-        f"---\n"
+        "</knowledge_passages>\n\n"
+        f"<style_passages voice=\"{figure_name}\">\n"
         f"{chr(10).join(style_lines)}\n"
-        "---\n"
+        "</style_passages>\n\n"
         "After your teaching, include a brief 'Sources' section listing which "
         "KNOWLEDGE passage IDs ([K1], [K2], etc.) support each major claim.\n\n"
-        f"USER QUESTION:\n{question.strip()}"
+        f"<user_question>\n{question.strip()}\n</user_question>"
     )
 
     return system_prompt, user_prompt

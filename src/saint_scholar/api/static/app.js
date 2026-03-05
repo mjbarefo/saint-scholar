@@ -11,6 +11,29 @@ const state = {
   _messageVersion: 0,
 };
 
+// Persist conversation to localStorage
+function saveConversation() {
+  try {
+    const data = { messages: state.messages, selectedFigure: state.selectedFigure };
+    localStorage.setItem("saint-scholar-conversation", JSON.stringify(data));
+  } catch (_) { /* quota exceeded or private mode — ignore */ }
+}
+
+function loadConversation() {
+  try {
+    const raw = localStorage.getItem("saint-scholar-conversation");
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (Array.isArray(data.messages)) {
+      state.messages = data.messages.filter((m) => !m.loading);
+      state._messageVersion++;
+    }
+    if (data.selectedFigure) {
+      state.selectedFigure = data.selectedFigure;
+    }
+  } catch (_) { /* corrupt data — ignore */ }
+}
+
 const promptStarters = [
   "What are the neurobiological mechanisms underlying chronic stress-induced structural changes in the hippocampus and prefrontal cortex?",
   "How does sleep architecture influence synaptic consolidation and memory formation across different stages of the sleep cycle?",
@@ -104,12 +127,13 @@ function parseInlineMarkdown(text) {
   // Inline code first to avoid styling markers inside code spans.
   working = working.replace(/`([^`\n]+)`/g, (_, code) => pushToken(`<code>${code}</code>`));
 
-  // Links
+  // Links — label is already escaped (from the initial escapeHtml pass on the full text),
+  // but re-escape to guard against any edge cases where tokens could inject HTML.
   working = working.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, href) => {
     const safeHref = sanitizeUrl(href);
-    if (!safeHref) return `[${label}](${href})`;
+    if (!safeHref) return `[${escapeHtml(label)}](${escapeHtml(href)})`;
     return pushToken(
-      `<a href="${escapeHtml(safeHref)}" target="_blank" rel="noreferrer">${label}</a>`
+      `<a href="${escapeHtml(safeHref)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`
     );
   });
 
@@ -151,7 +175,11 @@ async function http(path, init) {
     throw new Error(detail);
   }
 
-  return response.json();
+  try {
+    return await response.json();
+  } catch (_) {
+    throw new Error("Received an invalid response from the server.");
+  }
 }
 
 // Custom distinctive icons for each character - simplified for better rendering
@@ -752,6 +780,8 @@ async function submitQuestion() {
       el.requestId.textContent = data.meta.request_id;
     }
 
+    saveConversation();
+
   } catch (err) {
     // Remove loading message
     state.messages = state.messages.filter((m) => m.loading !== true);
@@ -769,6 +799,7 @@ function clearConversation() {
   state._messageVersion++;
   state.error = "";
   el.questionInput.value = "";
+  saveConversation();
   render();
   el.questionInput.focus();
 }
@@ -883,6 +914,7 @@ function bindEvents() {
 // Initialize
 async function init() {
   initTheme();
+  loadConversation();
   renderPromptStarters();
   bindEvents();
   render();

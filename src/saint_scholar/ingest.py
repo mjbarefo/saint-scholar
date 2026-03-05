@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import statistics
@@ -22,6 +23,8 @@ from saint_scholar.config import (
 )
 
 load_dotenv()
+
+logger = logging.getLogger("saint_scholar.ingest")
 
 _EMBEDDER: SentenceTransformer | None = None
 _MANIFEST_NAME = "corpus_manifest.json"
@@ -355,6 +358,7 @@ def _corpus_manifest(data_root: Path) -> dict[str, Any]:
         "style_files": style_files,
         "knowledge_file_count": len(knowledge_files),
         "style_file_count": len(style_files),
+        "embedding_model": EMBEDDING_MODEL,
     }
 
 
@@ -401,6 +405,14 @@ def _load_index(kind: str) -> dict[str, Any] | None:
     if not (len(ids) == len(texts) == len(metadatas) == len(embeddings)):
         raise RuntimeError(f"Corrupt vector store index for '{kind}': length mismatch.")
 
+    # Validate embedding dimensionality
+    if embeddings.ndim != 2:
+        raise RuntimeError(f"Corrupt vector store index for '{kind}': expected 2D embeddings array.")
+
+    # Validate ID uniqueness
+    if len(set(ids)) != len(ids):
+        logger.warning("Duplicate IDs detected in '%s' index.", kind)
+
     return {
         "ids": ids,
         "texts": texts,
@@ -446,7 +458,7 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
         and style_index is not None
         and stored_manifest == current_manifest
     ):
-        print("Existing index found and corpus unchanged, skipping ingestion.")
+        logger.info("Existing index found and corpus unchanged, skipping ingestion.")
         return {
             "knowledge_index": knowledge_index,
             "style_index": style_index,
@@ -459,7 +471,7 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
         and style_index is not None
         and stored_manifest != current_manifest
     ):
-        print("Corpus changes detected; rebuilding vector store indices.")
+        logger.info("Corpus changes detected; rebuilding vector store indices.")
 
     knowledge_texts, knowledge_metas, knowledge_ids = _load_knowledge_chunks(data_root)
     style_texts, style_metas, style_ids = _load_style_chunks(data_root)
@@ -469,7 +481,7 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
             os.getenv("SAINT_SCHOLAR_AUTO_POPULATE_KNOWLEDGE", "1").strip() != "0"
         )
         if auto_populate:
-            print("Knowledge corpus is empty. Attempting automatic PubMed bootstrap...")
+            logger.info("Knowledge corpus is empty. Attempting automatic PubMed bootstrap...")
             try:
                 from saint_scholar.populate_knowledge import populate_knowledge_corpus
 
@@ -479,9 +491,9 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
                     min_articles=40,
                     sleep_seconds=0.35,
                 )
-                print(f"Knowledge bootstrap wrote {written} article(s).")
+                logger.info("Knowledge bootstrap wrote %d article(s).", written)
             except Exception as exc:
-                print(f"Automatic knowledge bootstrap failed: {exc}")
+                logger.error("Automatic knowledge bootstrap failed: %s", exc)
 
             knowledge_texts, knowledge_metas, knowledge_ids = _load_knowledge_chunks(
                 data_root
@@ -516,18 +528,16 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
         raise RuntimeError("Failed to load freshly created vector store indices.")
 
     stats = _compute_stats(knowledge_index, style_index)
-    print("Saint & Scholar - Ingestion Complete")
-    print(
-        f"Knowledge: {stats['knowledge_total']} chunks across {len(stats['knowledge_by_domain'])} domains"
-    )
     domain_bits = [f"{k}: {v}" for k, v in sorted(stats["knowledge_by_domain"].items())]
-    print(f"  {' | '.join(domain_bits)}")
-    print(
-        f"Style: {stats['style_total']} chunks across {len(stats['style_by_figure'])} figures"
-    )
     figure_bits = [f"{k}: {v}" for k, v in sorted(stats["style_by_figure"].items())]
-    print(f"  {' | '.join(figure_bits)}")
-    print(f"Stored in {VECTOR_STORE_DIR}")
+    logger.info(
+        "Ingestion complete — Knowledge: %d chunks (%s), Style: %d chunks (%s). Stored in %s",
+        stats["knowledge_total"],
+        " | ".join(domain_bits),
+        stats["style_total"],
+        " | ".join(figure_bits),
+        VECTOR_STORE_DIR,
+    )
 
     return {
         "knowledge_index": knowledge_index,
