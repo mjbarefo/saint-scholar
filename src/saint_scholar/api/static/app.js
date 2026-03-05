@@ -7,6 +7,8 @@ const state = {
   loading: false,
   error: "",
   shouldAutoScroll: false,
+  _lastRenderedMessageVersion: 0,
+  _messageVersion: 0,
 };
 
 const promptStarters = [
@@ -32,6 +34,10 @@ const el = {
   metaStrip: document.getElementById("meta-strip"),
   newChatBtn: document.getElementById("new-chat-btn"),
   themeToggle: document.getElementById("theme-toggle"),
+  infoToggle: document.getElementById("info-toggle"),
+  infoDrawer: document.getElementById("info-drawer"),
+  infoOverlay: document.getElementById("info-overlay"),
+  infoClose: document.getElementById("info-close"),
 };
 
 // Theme management
@@ -553,6 +559,10 @@ function renderCitations(citations) {
 }
 
 function renderMessages() {
+  // Skip re-render if messages haven't changed
+  if (state._messageVersion === state._lastRenderedMessageVersion) return;
+  state._lastRenderedMessageVersion = state._messageVersion;
+
   // Show/hide welcome state
   const hasMessages = state.messages.length > 0;
   el.welcomeState.classList.toggle("hidden", hasMessages);
@@ -661,7 +671,7 @@ async function checkHealth() {
   } catch (_) {
     state.health = "down";
   }
-  render();
+  renderHealth();
 }
 
 async function loadFigures() {
@@ -704,6 +714,7 @@ async function submitQuestion() {
     timestamp: Date.now(),
   });
   state.shouldAutoScroll = true;
+  state._messageVersion++;
 
   // Clear input
   el.questionInput.value = "";
@@ -734,6 +745,7 @@ async function submitQuestion() {
       meta: data.meta,
     });
     state.shouldAutoScroll = true;
+    state._messageVersion++;
 
     // Update request ID in header
     if (data.meta?.request_id) {
@@ -743,6 +755,7 @@ async function submitQuestion() {
   } catch (err) {
     // Remove loading message
     state.messages = state.messages.filter((m) => m.loading !== true);
+    state._messageVersion++;
     setError(err.message || "Unable to generate response.");
   } finally {
     state.loading = false;
@@ -753,14 +766,44 @@ async function submitQuestion() {
 // Clear conversation
 function clearConversation() {
   state.messages = [];
+  state._messageVersion++;
   state.error = "";
   el.questionInput.value = "";
   render();
   el.questionInput.focus();
 }
 
+// Info panel
+function openInfoPanel() {
+  el.infoDrawer.classList.add("open");
+  el.infoDrawer.setAttribute("aria-hidden", "false");
+  el.infoOverlay.classList.remove("hidden");
+  // Force reflow before adding visible class for transition
+  void el.infoOverlay.offsetWidth;
+  el.infoOverlay.classList.add("visible");
+  el.infoOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeInfoPanel() {
+  el.infoDrawer.classList.remove("open");
+  el.infoDrawer.setAttribute("aria-hidden", "true");
+  el.infoOverlay.classList.remove("visible");
+  el.infoOverlay.setAttribute("aria-hidden", "true");
+  // Remove hidden after transition completes
+  setTimeout(() => {
+    if (!el.infoOverlay.classList.contains("visible")) {
+      el.infoOverlay.classList.add("hidden");
+    }
+  }, 400);
+}
+
 // Event handlers
 function bindEvents() {
+  // Info panel
+  el.infoToggle.addEventListener("click", openInfoPanel);
+  el.infoClose.addEventListener("click", closeInfoPanel);
+  el.infoOverlay.addEventListener("click", closeInfoPanel);
+
   // Theme toggle
   el.themeToggle.addEventListener("click", toggleTheme);
 
@@ -826,9 +869,13 @@ function bindEvents() {
         clearConversation();
       }
     }
-    // Escape to focus input
+    // Escape to close info panel or focus input
     if (event.key === "Escape") {
-      el.questionInput.focus();
+      if (el.infoDrawer.classList.contains("open")) {
+        closeInfoPanel();
+      } else {
+        el.questionInput.focus();
+      }
     }
   });
 }

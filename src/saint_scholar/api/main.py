@@ -147,7 +147,9 @@ def _style_citation(chunk: dict[str, Any]) -> Citation:
     text = str(chunk.get("text", "")).strip()
     # Take the first line of the passage as preview
     first_line = text.split("\n")[0].strip().lstrip("# ")
-    abstract_preview = (first_line[:150] + "...") if len(first_line) > 150 else first_line or None
+    abstract_preview = (
+        (first_line[:150] + "...") if len(first_line) > 150 else first_line or None
+    )
 
     return Citation(
         id=str(chunk.get("id", "")),
@@ -207,7 +209,9 @@ def ask(payload: AskRequest) -> AskResponse:
     style_chunks = retrieval.get("style_chunks", [])
 
     if not knowledge_chunks:
-        raise HTTPException(status_code=503, detail="No knowledge passages were retrieved.")
+        raise HTTPException(
+            status_code=503, detail="No knowledge passages were retrieved."
+        )
     if not style_chunks:
         raise HTTPException(
             status_code=503,

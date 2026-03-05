@@ -76,7 +76,9 @@ def _query_index(
     return rows
 
 
-def retrieve_knowledge(question: str, top_k: int = KNOWLEDGE_TOP_K) -> list[dict[str, Any]]:
+def retrieve_knowledge(
+    question: str, top_k: int = KNOWLEDGE_TOP_K
+) -> list[dict[str, Any]]:
     resources = _resources()
     embedder = resources["embedder"]
     knowledge_index = resources["knowledge_index"]
@@ -85,13 +87,17 @@ def retrieve_knowledge(question: str, top_k: int = KNOWLEDGE_TOP_K) -> list[dict
     return _query_index(knowledge_index, query_embedding, top_k=top_k)
 
 
-def retrieve_style(question: str, figure: str, top_k: int = STYLE_TOP_K) -> list[dict[str, Any]]:
+def retrieve_style(
+    question: str, figure: str, top_k: int = STYLE_TOP_K
+) -> list[dict[str, Any]]:
     resources = _resources()
     embedder = resources["embedder"]
     style_index = resources["style_index"]
     query_embedding = embedder.encode([question], convert_to_numpy=True)[0]
     query_embedding = _normalize_vector(query_embedding)
-    return _query_index(style_index, query_embedding, top_k=top_k, where={"figure": figure})
+    return _query_index(
+        style_index, query_embedding, top_k=top_k, where={"figure": figure}
+    )
 
 
 def dual_retrieve(question: str, figure: str) -> dict[str, Any]:

@@ -13,14 +13,55 @@ from typing import Any
 
 EUTILS_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 
-# Curated baseline neuroscience queries for a usable starter corpus.
+# Curated queries across multiple scientific domains.
 DEFAULT_QUERIES = [
+    # ── Neuroscience (expanded) ──
     ("mindfulness meditation prefrontal cortex neuroimaging", "neuroscience"),
     ("sleep memory consolidation hippocampus", "neuroscience"),
     ("neuroplasticity learning adult brain", "neuroscience"),
     ("chronic stress hippocampus prefrontal cortex", "neuroscience"),
     ("exercise neurotrophic BDNF cognition", "neuroscience"),
     ("contemplative practice attention networks fMRI", "neuroscience"),
+    ("default mode network resting state connectivity", "neuroscience"),
+    ("mirror neurons empathy social cognition", "neuroscience"),
+    ("gut brain axis microbiome neurotransmitters", "neuroscience"),
+    # ── Psychology ──
+    ("cognitive bias decision making heuristics", "psychology"),
+    ("positive psychology well-being flourishing", "psychology"),
+    ("trauma PTSD neurobiological mechanisms", "psychology"),
+    ("growth mindset motivation learning outcomes", "psychology"),
+    # ── Genetics ──
+    ("epigenetics gene expression environmental factors", "genetics"),
+    ("gene expression regulation transcription factors", "genetics"),
+    ("CRISPR gene editing therapeutic applications", "genetics"),
+    # ── Longevity ──
+    ("telomere length aging cellular senescence", "longevity"),
+    ("caloric restriction longevity metabolic pathways", "longevity"),
+    ("senolytics senescent cells aging therapeutics", "longevity"),
+    # ── Ecology ──
+    ("biodiversity ecosystem resilience conservation", "ecology"),
+    ("climate change cognitive behavioral adaptation", "ecology"),
+    ("biomimicry nature inspired design engineering", "ecology"),
+    # ── Nutrition (new domain) ──
+    ("micronutrients cognitive function brain health", "nutrition"),
+    ("gut microbiome diet health outcomes", "nutrition"),
+    ("metabolic health insulin resistance nutrition", "nutrition"),
+    # ── Exercise Science (new domain) ──
+    ("resistance training muscle hypertrophy mechanisms", "exercise_science"),
+    ("VO2max cardiorespiratory fitness health outcomes", "exercise_science"),
+    ("exercise recovery sleep adaptation performance", "exercise_science"),
+    # ── Immunology (new domain) ──
+    ("psychoneuroimmunology stress immune function", "immunology"),
+    ("chronic inflammation disease pathogenesis", "immunology"),
+    ("immune aging immunosenescence elderly", "immunology"),
+    # ── Consciousness (new domain) ──
+    ("consciousness neural correlates awareness", "consciousness"),
+    ("qualia subjective experience philosophy neuroscience", "consciousness"),
+    ("integrated information theory consciousness", "consciousness"),
+    # ── Social Science (new domain) ──
+    ("social connection health longevity isolation", "social_science"),
+    ("empathy neuroscience prosocial behavior", "social_science"),
+    ("collective behavior social networks emergence", "social_science"),
 ]
 
 
@@ -74,10 +115,16 @@ def efetch_articles(pmids: list[str]) -> list[dict[str, Any]]:
     for article in root.findall(".//PubmedArticle"):
         pmid = article.findtext(".//MedlineCitation/PMID", default="").strip()
         article_title = article.find(".//Article/ArticleTitle")
-        title = "".join(article_title.itertext()).strip() if article_title is not None else ""
+        title = (
+            "".join(article_title.itertext()).strip()
+            if article_title is not None
+            else ""
+        )
         journal = article.findtext(".//Article/Journal/Title", default="").strip()
         year = (
-            article.findtext(".//Article/Journal/JournalIssue/PubDate/Year", default="").strip()
+            article.findtext(
+                ".//Article/Journal/JournalIssue/PubDate/Year", default=""
+            ).strip()
             or article.findtext(".//Article/ArticleDate/Year", default="").strip()
         )
 
@@ -162,38 +209,44 @@ def _existing_pmids(knowledge_root: Path) -> set[str]:
 def populate_knowledge_corpus(
     out_root: Path,
     per_query: int = 12,
-    min_articles: int = 40,
+    min_articles: int = 120,
     sleep_seconds: float = 0.35,
 ) -> int:
     out_root.mkdir(parents=True, exist_ok=True)
-    known_pmids = _existing_pmids(out_root)
-    seen_pmids: set[str] = set(known_pmids)
+    pre_existing = _existing_pmids(out_root)
     written = 0
 
+    # Group queries by domain so each domain gets its own dedup scope.
+    # Each domain only deduplicates against itself + pre-existing files,
+    # allowing different domains to independently fetch from PubMed.
+    from collections import OrderedDict
+
+    domain_queries: OrderedDict[str, list[str]] = OrderedDict()
     for query, domain in DEFAULT_QUERIES:
-        if written >= min_articles:
-            break
+        domain_queries.setdefault(domain, []).append(query)
 
-        pmids = esearch_pmids(query=query, retmax=per_query)
-        new_pmids = [pmid for pmid in pmids if pmid not in seen_pmids]
-        seen_pmids.update(new_pmids)
-        if not new_pmids:
-            time.sleep(sleep_seconds)
-            continue
-
-        articles = efetch_articles(new_pmids)
+    for domain, queries in domain_queries.items():
         domain_dir = out_root / domain
-        for article in articles:
-            pmid = str(article.get("pmid", "")).strip()
-            if not pmid or pmid in known_pmids:
-                continue
-            write_article(article, domain, domain_dir)
-            known_pmids.add(pmid)
-            written += 1
-            if written >= min_articles:
-                break
+        # Only skip PMIDs already on disk before this run
+        domain_seen: set[str] = set(pre_existing)
 
-        time.sleep(sleep_seconds)
+        for query in queries:
+            pmids = esearch_pmids(query=query, retmax=per_query)
+            new_pmids = [pmid for pmid in pmids if pmid not in domain_seen]
+            if not new_pmids:
+                time.sleep(sleep_seconds)
+                continue
+
+            articles = efetch_articles(new_pmids)
+            for article in articles:
+                pmid = str(article.get("pmid", "")).strip()
+                if not pmid or pmid in domain_seen:
+                    continue
+                write_article(article, domain, domain_dir)
+                domain_seen.add(pmid)
+                written += 1
+
+            time.sleep(sleep_seconds)
 
     return written
 
@@ -202,9 +255,15 @@ def _main() -> None:
     parser = argparse.ArgumentParser(
         description="Populate data/knowledge with PubMed abstracts for Saint & Scholar."
     )
-    parser.add_argument("--out", default="data/knowledge", help="Knowledge corpus root directory.")
-    parser.add_argument("--per-query", type=int, default=12, help="PMIDs to request per query.")
-    parser.add_argument("--min-articles", type=int, default=40, help="Minimum new records to write.")
+    parser.add_argument(
+        "--out", default="data/knowledge", help="Knowledge corpus root directory."
+    )
+    parser.add_argument(
+        "--per-query", type=int, default=12, help="PMIDs to request per query."
+    )
+    parser.add_argument(
+        "--min-articles", type=int, default=120, help="Minimum new records to write."
+    )
     parser.add_argument(
         "--sleep",
         type=float,
