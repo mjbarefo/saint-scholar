@@ -1,29 +1,23 @@
-# Saint & Scholar — Local Quickstart
+# Saint & Scholar - Local Quickstart
 
 ## Prerequisites
 
-- Python 3.11+
-- An Anthropic API key
+- Python `>=3.11`
+- Anthropic API key
+- Run all commands from repo root
 
-## 1. Clone & set up the virtual environment
+## 1. Create and activate venv
 
 ```bash
-git clone <repo-url> saint-scholar
-cd saint-scholar
 python -m venv .venv
 ```
 
-Activate the venv:
-
 ```bash
-# Linux / macOS
+# Linux/macOS
 source .venv/bin/activate
 
-# Windows (Git Bash / MSYS2)
-source .venv/Scripts/activate
-
-# Windows (PowerShell)
-.venv\Scripts\Activate.ps1
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
 ```
 
 Install dependencies:
@@ -33,88 +27,94 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-## 2. Configure environment variables
+Optional test dependency:
 
 ```bash
+pip install pytest
+```
+
+## 2. Configure `.env`
+
+```bash
+# Linux/macOS
 cp .env.example .env
+
+# Windows PowerShell
+copy .env.example .env
 ```
 
-Edit `.env` and fill in your keys:
+Required:
 
-```
+```bash
 ANTHROPIC_API_KEY=sk-ant-...
-ADMIN_API_KEY=some-random-secret
+ADMIN_API_KEY=set_a_long_random_admin_token_here
 ```
 
-## 3. Populate the knowledge corpus
-
-This fetches PubMed abstracts across all domains (neuroscience, psychology, genetics, nutrition, immunology, etc.). Takes a few minutes due to API rate limits.
+Common optional settings:
 
 ```bash
-python src/saint_scholar/populate_knowledge.py --per-query 12
+NCBI_EMAIL=you@example.com
+SAINT_SCHOLAR_AUTO_POPULATE_KNOWLEDGE=1
+VECTOR_STORE_PATH=./vector_store
+CORS_ALLOWED_ORIGINS=http://127.0.0.1:8000
+RATE_LIMIT_MAX_REQUESTS=20
+RATE_LIMIT_WINDOW_SECONDS=60
 ```
 
-You should see output like:
+## 3. Prepare corpus data
 
-```
-Knowledge population complete. Wrote ~370 article(s) into data/knowledge.
-```
+Style corpus is required:
+- `data/style/<figure>/...` containing `.md` or `.txt` texts
 
-Verify domain folders exist:
+Knowledge corpus options:
+- Manual bootstrap:
 
 ```bash
-ls data/knowledge/
-# Expected: consciousness/ ecology/ exercise_science/ genetics/ immunology/
-#           longevity/ neuroscience/ nutrition/ psychology/ social_science/
+python -m saint_scholar.populate_knowledge --per-query 12
 ```
 
-## 4. Build the vector store
+- Auto-bootstrap on ingestion when `data/knowledge` is empty:
+  set `SAINT_SCHOLAR_AUTO_POPULATE_KNOWLEDGE=1` (default behavior unless set to `0`)
 
-This embeds all knowledge and style texts into the local vector index. First run downloads the embedding model (~80 MB).
+## 4. Build vector store
 
 ```bash
-python src/saint_scholar/ingest.py
+python -m saint_scholar.ingest
 ```
 
-You should see a summary like:
+Output is written to `./vector_store` (or `VECTOR_STORE_PATH`).
 
-```
-Knowledge: ~457 chunks across 10 domains
-Style: ~4547 chunks across 10 figures
-Stored in ./vector_store
-```
-
-## 5. Run the API server
+## 5. Run API
 
 ```bash
-uvicorn saint_scholar.api.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn saint_scholar.api.main:app --host 127.0.0.1 --port 8000
 ```
 
-Open http://127.0.0.1:8000 in your browser.
+Open `http://127.0.0.1:8000/`.
 
-## 6. Smoke test (optional)
+## 6. Validate
 
-In a separate terminal (with the venv activated):
+Smoke test against running API:
 
 ```bash
-python scripts/smoke_api.py
+python scripts/smoke_api.py --base-url http://127.0.0.1:8000
 ```
 
-This hits `/health`, `/v1/figures`, and `/v1/ask` and reports pass/fail for each.
+Run tests:
 
-## What to verify
+```bash
+python -m pytest -q
+```
 
-- **No auto-scroll drift** — page should not scroll on its own when it loads or after the 30-second health check fires
-- **Send a message** — pick a figure, type a question, confirm smooth scroll to the new message and that citations appear
-- **Mobile** — resize browser to 375px or 414px width:
-  - Character bar should show avatar-only pills with horizontal swipe
-  - Input area should feel full-width, send button should be easy to tap
-  - Prompt chips should be at least 44px tall
-- **Info panel** — click the (i) button in the header, verify the drawer slides in from the right. Close via X button, clicking the overlay, or pressing Escape
-- **Knowledge domains** — ask a question about nutrition, immunity, or exercise and verify relevant citations appear from those domains
+## API behavior notes
 
-## Important notes
+- `/health` is `ok` only when vector store exists and `ANTHROPIC_API_KEY` is set.
+- `/v1/figures` returns configured figures plus any `data/style/*` folder names.
+- `/v1/ask` is IP rate-limited and returns `503` if no knowledge/style chunks are retrieved.
+- `/v1/admin/reindex` requires `x-admin-token` and `ADMIN_API_KEY` length >= 16.
 
-- `data/knowledge/`, `data/style/`, and `vector_store/` are all in `.gitignore` — they are generated locally and not committed
-- If you change knowledge queries in `populate_knowledge.py`, you need to re-run steps 3 and 4
-- The `.env` file is also gitignored — never commit API keys
+## Troubleshooting
+
+- `ModuleNotFoundError` (for `fastapi`, `numpy`, etc.): activate venv and reinstall dependencies.
+- Embedding cache error in ingest: run once with internet access to download `all-MiniLM-L6-v2`.
+- `/v1/ask` model/auth errors: verify `ANTHROPIC_API_KEY`.
