@@ -1,0 +1,18 @@
+[Unit]
+Description=Saint & Scholar FastAPI Service
+After=network.target
+
+[Service]
+Type=simple
+User=saintscholar
+Group=saintscholar
+WorkingDirectory=/opt/saint-scholar
+EnvironmentFile=/etc/saint-scholar.env
+ExecStart=/opt/saint-scholar/.venv/bin/uvicorn saint_scholar.api.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
+
