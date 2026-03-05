@@ -1,23 +1,24 @@
 # Saint & Scholar — Central Configuration
+import os
 
 # Embedding
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 
 # Chunking
-KNOWLEDGE_CHUNK_SIZE = 500  # tokens — abstracts are small, often 1 chunk
-STYLE_CHUNK_SIZE = 300  # tokens
-STYLE_CHUNK_OVERLAP = 50  # tokens
+KNOWLEDGE_CHUNK_SIZE = int(os.getenv("KNOWLEDGE_CHUNK_SIZE", "500"))  # words
+STYLE_CHUNK_SIZE = int(os.getenv("STYLE_CHUNK_SIZE", "300"))  # words
+STYLE_CHUNK_OVERLAP = int(os.getenv("STYLE_CHUNK_OVERLAP", "50"))  # words
 
 # Retrieval
-KNOWLEDGE_TOP_K = 5
-STYLE_TOP_K = 3
+KNOWLEDGE_TOP_K = int(os.getenv("KNOWLEDGE_TOP_K", "5"))
+STYLE_TOP_K = int(os.getenv("STYLE_TOP_K", "3"))
 
 # Local vector store
-VECTOR_STORE_DIR = "./vector_store"
+VECTOR_STORE_DIR = os.getenv("VECTOR_STORE_PATH", "./vector_store")
 
 # Generation
-ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
-MAX_TOKENS = 1024
+ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", "1024"))
 
 # Figures (display config)
 FIGURES = {

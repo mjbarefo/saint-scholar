@@ -72,4 +72,14 @@ fi
 echo "$TIMESTAMP" > "$BACKUP_ROOT/latest"
 echo "Deploy complete for $DOMAIN"
 echo "Backup snapshot: $RELEASE_DIR"
+
+# Post-deploy smoke test
+echo "Running post-deploy smoke test..."
+sleep 3
+if curl -sf --max-time 10 "http://127.0.0.1:8000/health" > /dev/null 2>&1; then
+  echo "Smoke test PASSED: /health is responding."
+else
+  echo "WARNING: Smoke test FAILED — /health did not respond within 10s." >&2
+fi
+
 echo "Health check: curl -sS https://$DOMAIN/health"
