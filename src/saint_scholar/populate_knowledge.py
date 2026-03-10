@@ -115,16 +115,10 @@ def efetch_articles(pmids: list[str]) -> list[dict[str, Any]]:
     for article in root.findall(".//PubmedArticle"):
         pmid = article.findtext(".//MedlineCitation/PMID", default="").strip()
         article_title = article.find(".//Article/ArticleTitle")
-        title = (
-            "".join(article_title.itertext()).strip()
-            if article_title is not None
-            else ""
-        )
+        title = "".join(article_title.itertext()).strip() if article_title is not None else ""
         journal = article.findtext(".//Article/Journal/Title", default="").strip()
         year = (
-            article.findtext(
-                ".//Article/Journal/JournalIssue/PubDate/Year", default=""
-            ).strip()
+            article.findtext(".//Article/Journal/JournalIssue/PubDate/Year", default="").strip()
             or article.findtext(".//Article/ArticleDate/Year", default="").strip()
         )
 
@@ -255,12 +249,8 @@ def _main() -> None:
     parser = argparse.ArgumentParser(
         description="Populate data/knowledge with PubMed abstracts for Saint & Scholar."
     )
-    parser.add_argument(
-        "--out", default="data/knowledge", help="Knowledge corpus root directory."
-    )
-    parser.add_argument(
-        "--per-query", type=int, default=12, help="PMIDs to request per query."
-    )
+    parser.add_argument("--out", default="data/knowledge", help="Knowledge corpus root directory.")
+    parser.add_argument("--per-query", type=int, default=12, help="PMIDs to request per query.")
     parser.add_argument(
         "--min-articles", type=int, default=120, help="Minimum new records to write."
     )

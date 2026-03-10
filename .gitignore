@@ -10,6 +10,7 @@ chroma_store/
 data/knowledge/
 data/style/
 .bak/
+.rate_limit.db
 
 # Python build/runtime artifacts
 __pycache__/
@@ -35,9 +36,15 @@ wheels/
 
 # Tooling caches and logs
 .pytest_cache/
+output/pytest-cache/
+output/pytest-cache-files-*/
 .mypy_cache/
 .ruff_cache/
 *.log
+server.log
+output/playwright/
+playwright-report/
+test-results/
 
 # Local Codex/Claude metadata
 .claude/
@@ -48,6 +55,7 @@ wheels/
 *.swp
 *.swo
 *~
+node_modules/
 
 # OS
 .DS_Store

@@ -66,7 +66,7 @@ def _build_prompt(
         "<knowledge_passages>\n"
         f"{chr(10).join(knowledge_lines)}\n"
         "</knowledge_passages>\n\n"
-        f"<style_passages voice=\"{figure_name}\">\n"
+        f'<style_passages voice="{figure_name}">\n'
         f"{chr(10).join(style_lines)}\n"
         "</style_passages>\n\n"
         "After your teaching, include a brief 'Sources' section listing which "

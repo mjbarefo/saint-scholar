@@ -124,6 +124,24 @@ python -m pytest -q
 python scripts/smoke_api.py --base-url http://127.0.0.1:8000
 ```
 
+## Verification
+
+Run the core repo hygiene and Python test suite with:
+```bash
+npm run verify
+```
+
+This runs:
+- Ruff lint
+- Ruff format check
+- ESLint
+- Python tests
+
+Run the Playwright UI suite with:
+```bash
+npm run verify:ui
+```
+
 ## Corpus tooling
 
 - `python -m saint_scholar.populate_knowledge`

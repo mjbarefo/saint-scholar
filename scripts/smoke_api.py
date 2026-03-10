@@ -38,9 +38,7 @@ def _fail(message: str, *, detail: str | None = None) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Smoke test Saint & Scholar API.")
-    parser.add_argument(
-        "--base-url", default="http://127.0.0.1:8000", help="API base URL"
-    )
+    parser.add_argument("--base-url", default="http://127.0.0.1:8000", help="API base URL")
     parser.add_argument(
         "--figure",
         default="",
@@ -51,18 +49,14 @@ def main() -> int:
         default="How does meditation physically change the brain?",
         help="Question for /v1/ask",
     )
-    parser.add_argument(
-        "--timeout", type=float, default=25.0, help="Request timeout in seconds"
-    )
+    parser.add_argument("--timeout", type=float, default=25.0, help="Request timeout in seconds")
     args = parser.parse_args()
 
     base_url = args.base_url.rstrip("/")
     print(f"Running smoke test against: {base_url}")
 
     try:
-        status, health = _request_json(
-            method="GET", url=f"{base_url}/health", timeout=args.timeout
-        )
+        status, health = _request_json(method="GET", url=f"{base_url}/health", timeout=args.timeout)
         if status != 200 or health.get("status") != "ok":
             return _fail("/health returned unexpected response", detail=str(health))
         print("PASS: /health")
@@ -122,9 +116,7 @@ def main() -> int:
         )
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
-        return _fail(
-            "/v1/ask returned HTTP error", detail=f"status={exc.code}, body={body}"
-        )
+        return _fail("/v1/ask returned HTTP error", detail=f"status={exc.code}, body={body}")
     except Exception as exc:  # pragma: no cover
         return _fail("/v1/ask failed", detail=str(exc))
 

@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
-import pytest
 from fastapi.testclient import TestClient
 
 from saint_scholar.api.main import app
