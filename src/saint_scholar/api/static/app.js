@@ -350,7 +350,7 @@ function renderHealth() {
 function renderFigures() {
   const keys = Object.keys(state.figures);
   if (!keys.length) {
-    el.figureList.innerHTML = "<p style='text-align: center; color: var(--ink-tertiary); font-family: Source Sans 3, sans-serif; font-size: 0.8125rem;'>No voices available.</p>";
+    el.figureList.innerHTML = '<p class="empty-figure-state">No voices available.</p>';
     return;
   }
 
@@ -505,8 +505,11 @@ function renderMessageContent(content) {
 
 function renderScoreBar(score) {
   const pct = Math.round(score * 100);
+  const bucket = Math.max(0, Math.min(100, Math.round(pct / 5) * 5));
   return `<div class="citation-score" title="Relevance: ${pct}%">
-    <div class="citation-score-bar" style="width: ${pct}%"></div>
+    <div class="citation-score-bar">
+      <div class="citation-score-meter pct-${bucket}"></div>
+    </div>
   </div>`;
 }
 
@@ -557,7 +560,7 @@ function renderCitations(citations) {
 
   // Style sources
   if (styleCitations.length > 0) {
-    html += '<div class="citations-section" style="margin-top: 0.75rem;">';
+    html += '<div class="citations-section citations-section-spaced">';
     html += `<p class="citations-label">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>
       Style Sources
@@ -597,6 +600,7 @@ function renderMessages() {
   el.chatMessages.classList.toggle("hidden", !hasMessages);
 
   if (!hasMessages) {
+    el.chatMessages.innerHTML = "";
     return;
   }
 

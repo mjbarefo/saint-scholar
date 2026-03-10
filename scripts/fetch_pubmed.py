@@ -60,9 +60,7 @@ def efetch_articles(pmids: list[str]) -> list[dict[str, Any]]:
         )
         journal = article.findtext(".//Article/Journal/Title", default="").strip()
         year = (
-            article.findtext(
-                ".//Article/Journal/JournalIssue/PubDate/Year", default=""
-            ).strip()
+            article.findtext(".//Article/Journal/JournalIssue/PubDate/Year", default="").strip()
             or article.findtext(".//Article/ArticleDate/Year", default="").strip()
         )
 
@@ -131,20 +129,14 @@ def write_article(article: dict[str, Any], domain: str, out_dir: Path) -> Path:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Fetch PubMed abstracts and write .md + metadata."
-    )
+    parser = argparse.ArgumentParser(description="Fetch PubMed abstracts and write .md + metadata.")
     parser.add_argument("--query", required=True, help="PubMed query string.")
     parser.add_argument(
         "--domain", required=True, help="Target domain folder under data/knowledge."
     )
     parser.add_argument("--retmax", type=int, default=10, help="Max results to fetch.")
-    parser.add_argument(
-        "--out", default="data/knowledge", help="Base knowledge directory."
-    )
-    parser.add_argument(
-        "--sleep", type=float, default=0.34, help="Delay between API calls."
-    )
+    parser.add_argument("--out", default="data/knowledge", help="Base knowledge directory.")
+    parser.add_argument("--sleep", type=float, default=0.34, help="Delay between API calls.")
     args = parser.parse_args()
 
     pmids = esearch_pmids(query=args.query, retmax=args.retmax)
@@ -157,9 +149,7 @@ def main() -> None:
         write_article(article, args.domain, domain_dir)
         written += 1
 
-    print(
-        f"Fetched {len(pmids)} PMIDs, wrote {written} markdown records to {domain_dir}"
-    )
+    print(f"Fetched {len(pmids)} PMIDs, wrote {written} markdown records to {domain_dir}")
 
 
 if __name__ == "__main__":

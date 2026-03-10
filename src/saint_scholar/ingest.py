@@ -81,9 +81,7 @@ def _chunk_style_text(text: str, target_words: int, overlap_words: int) -> list[
             long_parts = _chunk_by_sentence(paragraph, target_words)
             for part in long_parts:
                 part_words = part.split()
-                if current_words and (
-                    len(current_words) + len(part_words) > target_words
-                ):
+                if current_words and (len(current_words) + len(part_words) > target_words):
                     flush_chunk()
                     current_words = current_words[-overlap_words:] + part_words
                 else:
@@ -303,9 +301,7 @@ def _load_style_chunks(
             metadata = dict(base_metadata)
             metadata["style_richness"] = style_richness(chunk)
             metadatas.append(metadata)
-            ids.append(
-                f"s_{metadata.get('figure', filepath.parent.name)}_{base_id}_{idx}"
-            )
+            ids.append(f"s_{metadata.get('figure', filepath.parent.name)}_{base_id}_{idx}")
 
     return texts, metadatas, ids
 
@@ -373,9 +369,7 @@ def _load_manifest() -> dict[str, Any] | None:
 
 
 def _save_manifest(manifest: dict[str, Any]) -> None:
-    _manifest_path().write_text(
-        json.dumps(manifest, ensure_ascii=False), encoding="utf-8"
-    )
+    _manifest_path().write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
 
 
 def _save_index(
@@ -407,7 +401,9 @@ def _load_index(kind: str) -> dict[str, Any] | None:
 
     # Validate embedding dimensionality
     if embeddings.ndim != 2:
-        raise RuntimeError(f"Corrupt vector store index for '{kind}': expected 2D embeddings array.")
+        raise RuntimeError(
+            f"Corrupt vector store index for '{kind}': expected 2D embeddings array."
+        )
 
     # Validate ID uniqueness
     if len(set(ids)) != len(ids):
@@ -427,9 +423,7 @@ def _normalize_embeddings(vectors: np.ndarray) -> np.ndarray:
     return vectors / norms
 
 
-def _compute_stats(
-    knowledge_index: dict[str, Any], style_index: dict[str, Any]
-) -> dict[str, Any]:
+def _compute_stats(knowledge_index: dict[str, Any], style_index: dict[str, Any]) -> dict[str, Any]:
     knowledge_metas = knowledge_index.get("metadatas", [])
     style_metas = style_index.get("metadatas", [])
 
@@ -477,9 +471,7 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
     style_texts, style_metas, style_ids = _load_style_chunks(data_root)
 
     if not knowledge_texts:
-        auto_populate = (
-            os.getenv("SAINT_SCHOLAR_AUTO_POPULATE_KNOWLEDGE", "1").strip() != "0"
-        )
+        auto_populate = os.getenv("SAINT_SCHOLAR_AUTO_POPULATE_KNOWLEDGE", "1").strip() != "0"
         if auto_populate:
             logger.info("Knowledge corpus is empty. Attempting automatic PubMed bootstrap...")
             try:
@@ -495,14 +487,13 @@ def ingest_if_needed(force_rebuild: bool = False) -> dict[str, Any]:
             except Exception as exc:
                 logger.error("Automatic knowledge bootstrap failed: %s", exc)
 
-            knowledge_texts, knowledge_metas, knowledge_ids = _load_knowledge_chunks(
-                data_root
-            )
+            knowledge_texts, knowledge_metas, knowledge_ids = _load_knowledge_chunks(data_root)
             current_manifest = _corpus_manifest(data_root)
 
     if not knowledge_texts or not style_texts:
         raise RuntimeError(
-            "Corpus appears empty. Ensure data/style has .md/.txt files and populate data/knowledge "
+            "Corpus appears empty. Ensure data/style has .md/.txt files and populate "
+            "data/knowledge "
             "with: python -m saint_scholar.populate_knowledge"
         )
 

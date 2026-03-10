@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "scripts": {
+    "format:check:py": ".\\.venv\\Scripts\\ruff.exe format --check src tests scripts",
+    "lint": "eslint src/saint_scholar/api/static tests playwright.config.js",
+    "lint:py": ".\\.venv\\Scripts\\ruff.exe check src tests scripts",
+    "test:py": ".\\.venv\\Scripts\\python.exe -m pytest",
+    "test:ui": "playwright test",
+    "test:ui:headed": "playwright test --headed",
+    "verify": ".\\.venv\\Scripts\\ruff.exe check src tests scripts && .\\.venv\\Scripts\\ruff.exe format --check src tests scripts && eslint src/saint_scholar/api/static tests playwright.config.js && .\\.venv\\Scripts\\python.exe -m pytest",
+    "verify:ui": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "eslint": "^9.23.0"
+  }
+}

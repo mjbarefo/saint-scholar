@@ -156,9 +156,7 @@ def _write_excerpt(
     md_path = figure_dir / filename
     md_path.write_text(content, encoding="utf-8")
     meta_path = figure_dir / f"{filename}.metadata.json"
-    meta_path.write_text(
-        json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    meta_path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"  Wrote {md_path.name} ({len(content):,} chars)")
 
 
@@ -256,9 +254,7 @@ def fetch_figure(figure_key: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Fetch style-corpus texts from Project Gutenberg."
-    )
+    parser = argparse.ArgumentParser(description="Fetch style-corpus texts from Project Gutenberg.")
     parser.add_argument(
         "--figure",
         choices=list(FIGURES.keys()),

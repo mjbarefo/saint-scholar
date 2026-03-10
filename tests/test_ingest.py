@@ -77,7 +77,9 @@ class TestParseKnowledgeMetadata:
 
 class TestStyleRichness:
     def test_returns_float(self):
-        result = style_richness("Short. Medium length sentence. Very long sentence with many words in it.")
+        result = style_richness(
+            "Short. Medium length sentence. Very long sentence with many words in it."
+        )
         assert isinstance(result, float)
         assert result >= 0
 
