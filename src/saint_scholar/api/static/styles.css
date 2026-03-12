@@ -1695,23 +1695,34 @@ html, body {
     padding: 0 0.75rem;
   }
 
-  /* Compact avatar-only pills on small screens */
+  /* Keep the selected voice identifiable without restoring the full desktop card */
   .figure-grid {
     gap: 0.375rem;
   }
 
   .figure-card {
-    padding: 0.375rem;
+    padding: 0.375rem 0.5rem 0.375rem 0.375rem;
     border-radius: var(--r-md);
+    max-width: min(46vw, 9rem);
   }
 
   .figure-text {
-    display: none;
+    display: flex;
+    min-width: 0;
   }
 
   .figure-avatar {
     width: 34px;
     height: 34px;
+  }
+
+  .figure-name {
+    max-width: 100%;
+    font-size: 0.7rem;
+  }
+
+  .figure-meta {
+    display: none;
   }
 
   .figure-card.active {
