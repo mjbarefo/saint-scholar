@@ -12,6 +12,8 @@ The API returns an answer with citations and request metadata.
 
 - FastAPI backend with endpoints: `/`, `/health`, `/v1/figures`, `/v1/ask`, `/v1/admin/reindex`
 - Static no-build frontend under `src/saint_scholar/api/static/`
+- Frontend uses in-app overlays for site actions, including a styled "New Discourse" confirmation modal
+- Response citations render collapsed by default and can be expanded per answer
 - Local vector-store pipeline with manifest-based change detection
 - Optional automatic PubMed bootstrap when `data/knowledge` is empty
 - Rate limiting for `/v1/ask` (in-memory, per-process, per-client IP)
@@ -99,7 +101,7 @@ Open: `http://127.0.0.1:8000/`
 - `GET /v1/figures`: configured figures plus discovered `data/style/*` folders
 - `POST /v1/ask`: retrieval + generation response with citations and metadata
 - `POST /v1/admin/reindex`: force rebuild (requires `x-admin-token` matching `ADMIN_API_KEY`)
-- `GET /`: static frontend shell
+- `GET /`: static frontend shell with figure selection, chat UI, expandable citations, and a custom new-discourse confirmation flow
 
 Ask example:
 

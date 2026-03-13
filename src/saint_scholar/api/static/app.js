@@ -9,6 +9,8 @@ const state = {
   shouldAutoScroll: false,
   _lastRenderedMessageVersion: 0,
   _messageVersion: 0,
+  isNewDiscourseDialogOpen: false,
+  lastFocusedElement: null,
 };
 
 // Persist conversation to localStorage
@@ -61,6 +63,11 @@ const el = {
   infoDrawer: document.getElementById("info-drawer"),
   infoOverlay: document.getElementById("info-overlay"),
   infoClose: document.getElementById("info-close"),
+  newDiscourseOverlay: document.getElementById("new-discourse-overlay"),
+  newDiscourseDialog: document.getElementById("new-discourse-dialog"),
+  newDiscourseCancelIcon: document.getElementById("new-discourse-cancel-icon"),
+  newDiscourseCancel: document.getElementById("new-discourse-cancel"),
+  newDiscourseConfirm: document.getElementById("new-discourse-confirm"),
 };
 
 // Theme management
@@ -522,7 +529,7 @@ function renderCitations(citations) {
   const styleCitations = citations.filter((c) => c.type === "style");
 
   let html = '<div class="message-citations">';
-  html += '<details class="citations-panel" open>';
+  html += '<details class="citations-panel">';
   html += `<summary class="citations-toggle">
     <svg class="citations-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
     Sources &amp; Citations
@@ -808,6 +815,53 @@ function clearConversation() {
   el.questionInput.focus();
 }
 
+function openNewDiscourseDialog() {
+  if (!state.messages.length || state.isNewDiscourseDialogOpen) return;
+
+  state.isNewDiscourseDialogOpen = true;
+  state.lastFocusedElement = document.activeElement instanceof HTMLElement
+    ? document.activeElement
+    : null;
+
+  document.body.classList.add("modal-open");
+  el.newDiscourseOverlay.classList.remove("hidden");
+  el.newDiscourseDialog.classList.remove("hidden");
+  void el.newDiscourseDialog.offsetWidth;
+  el.newDiscourseOverlay.classList.add("visible");
+  el.newDiscourseDialog.classList.add("visible");
+  el.newDiscourseOverlay.setAttribute("aria-hidden", "false");
+  el.newDiscourseDialog.setAttribute("aria-hidden", "false");
+  el.newDiscourseConfirm.focus();
+}
+
+function closeNewDiscourseDialog() {
+  if (!state.isNewDiscourseDialogOpen) return;
+
+  state.isNewDiscourseDialogOpen = false;
+  document.body.classList.remove("modal-open");
+  el.newDiscourseOverlay.classList.remove("visible");
+  el.newDiscourseDialog.classList.remove("visible");
+  el.newDiscourseOverlay.setAttribute("aria-hidden", "true");
+  el.newDiscourseDialog.setAttribute("aria-hidden", "true");
+
+  setTimeout(() => {
+    if (!state.isNewDiscourseDialogOpen) {
+      el.newDiscourseOverlay.classList.add("hidden");
+      el.newDiscourseDialog.classList.add("hidden");
+    }
+  }, 250);
+
+  if (state.lastFocusedElement) {
+    state.lastFocusedElement.focus();
+    state.lastFocusedElement = null;
+  }
+}
+
+function confirmNewDiscourse() {
+  closeNewDiscourseDialog();
+  clearConversation();
+}
+
 // Info panel
 function openInfoPanel() {
   el.infoDrawer.classList.add("open");
@@ -838,6 +892,10 @@ function bindEvents() {
   el.infoToggle.addEventListener("click", openInfoPanel);
   el.infoClose.addEventListener("click", closeInfoPanel);
   el.infoOverlay.addEventListener("click", closeInfoPanel);
+  el.newDiscourseOverlay.addEventListener("click", closeNewDiscourseDialog);
+  el.newDiscourseCancelIcon.addEventListener("click", closeNewDiscourseDialog);
+  el.newDiscourseCancel.addEventListener("click", closeNewDiscourseDialog);
+  el.newDiscourseConfirm.addEventListener("click", confirmNewDiscourse);
 
   // Theme toggle
   el.themeToggle.addEventListener("click", toggleTheme);
@@ -845,9 +903,7 @@ function bindEvents() {
   // New chat button
   el.newChatBtn.addEventListener("click", () => {
     if (state.messages.length > 0) {
-      if (confirm("Commence a new scholarly discourse? Current conversation will be archived.")) {
-        clearConversation();
-      }
+      openNewDiscourseDialog();
     }
   });
 
@@ -897,16 +953,31 @@ function bindEvents() {
 
   // Keyboard shortcuts
   document.addEventListener("keydown", (event) => {
+    if (state.isNewDiscourseDialogOpen && event.key === "Tab") {
+      const focusable = [el.newDiscourseCancelIcon, el.newDiscourseCancel, el.newDiscourseConfirm];
+      const currentIndex = focusable.indexOf(document.activeElement);
+      const direction = event.shiftKey ? -1 : 1;
+      const nextIndex = currentIndex === -1
+        ? (event.shiftKey ? focusable.length - 1 : 0)
+        : (currentIndex + direction + focusable.length) % focusable.length;
+      event.preventDefault();
+      focusable[nextIndex].focus();
+      return;
+    }
+
     // Cmd/Ctrl + K for new chat
     if ((event.metaKey || event.ctrlKey) && event.key === "k") {
       event.preventDefault();
       if (state.messages.length > 0) {
-        clearConversation();
+        openNewDiscourseDialog();
       }
     }
-    // Escape to close info panel or focus input
+
+    // Escape to close active overlay or focus input
     if (event.key === "Escape") {
-      if (el.infoDrawer.classList.contains("open")) {
+      if (state.isNewDiscourseDialogOpen) {
+        closeNewDiscourseDialog();
+      } else if (el.infoDrawer.classList.contains("open")) {
         closeInfoPanel();
       } else {
         el.questionInput.focus();

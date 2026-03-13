@@ -168,6 +168,7 @@ test.describe("core app flows", () => {
       "Neuroplasticity remains experience-dependent."
     );
     await expect(page.locator(".citations-panel")).toBeVisible();
+    await expect(page.locator(".citations-panel")).not.toHaveAttribute("open", "");
     await expect(page.locator("#request-id")).toHaveText("req_ui_suite_123456");
     await expect(page.locator("#error-banner")).toBeHidden();
 
@@ -233,12 +234,11 @@ test.describe("core app flows", () => {
     await gotoHome(page);
     await expect(page.locator(".message")).toHaveCount(2);
 
-    page.once("dialog", async (dialog) => {
-      expect(dialog.message()).toContain("Commence a new scholarly discourse?");
-      await dialog.accept();
-    });
-
     await page.locator("#new-chat-btn").click();
+    await expect(page.locator("#new-discourse-dialog")).toHaveClass(/visible/);
+    await expect(page.getByRole("heading", { name: "Begin a new discourse?" })).toBeVisible();
+    await page.getByRole("button", { name: "Start fresh" }).click();
+
     await expect(page.locator(".message")).toHaveCount(0);
     await expect(page.getByText("Begin Your Inquiry")).toBeVisible();
 

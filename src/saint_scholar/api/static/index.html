@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css?v=20260312" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260313" />
   </head>
   <body>
     <!-- Grain texture overlay -->
@@ -161,6 +161,39 @@
       </div>
     </aside>
 
-    <script src="/static/app.js?v=20260305"></script>
+    <!-- New discourse confirmation modal -->
+    <div id="new-discourse-overlay" class="dialog-overlay hidden" aria-hidden="true"></div>
+    <div
+      id="new-discourse-dialog"
+      class="confirmation-dialog hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="new-discourse-title"
+      aria-describedby="new-discourse-description"
+    >
+      <div class="confirmation-dialog-shell">
+        <div class="confirmation-dialog-header">
+          <p class="confirmation-dialog-eyebrow">Conversation</p>
+          <button id="new-discourse-cancel-icon" class="confirmation-dialog-close" aria-label="Close dialog">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="confirmation-dialog-body">
+          <h2 id="new-discourse-title" class="confirmation-dialog-title">Begin a new discourse?</h2>
+          <p id="new-discourse-description" class="confirmation-dialog-copy">
+            Your current exchange will be archived locally, and the writing desk will be cleared for a fresh inquiry.
+          </p>
+        </div>
+        <div class="confirmation-dialog-actions">
+          <button id="new-discourse-cancel" type="button" class="dialog-button dialog-button-secondary">Keep current thread</button>
+          <button id="new-discourse-confirm" type="button" class="dialog-button dialog-button-primary">Start fresh</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/app.js?v=20260313"></script>
   </body>
 </html>
